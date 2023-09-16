@@ -1,0 +1,43 @@
+{
+   "name": "iprofile-backend-bun",
+   "module": "index.ts",
+   "type": "module",
+   "scripts": {
+      "start": "bun run index.js",
+      "dev": "bun --watch run src/index.ts",
+      "build": "bun build --target=bun ./src/index.ts --outfile=build/index.js"
+   },
+   "devDependencies": {
+      "@eddeee888/gcg-typescript-resolver-files": "^0.6.0",
+      "@graphql-codegen/cli": "^5.0.0",
+      "@graphql-codegen/typescript": "^4.0.1",
+      "@graphql-codegen/typescript-resolvers": "^4.0.1",
+      "@types/bcryptjs": "^2.4.3",
+      "@types/jsonwebtoken": "8.5.1",
+      "bun-types": "^1.0.1",
+      "prettier": "^3.0.3",
+      "tsx": "^3.12.8"
+   },
+   "peerDependencies": {
+      "typescript": "^5.0.0"
+   },
+   "dependencies": {
+      "@graphql-tools/load-files": "^7.0.0",
+      "bcryptjs": "^2.4.3",
+      "graphql": "^16.8.0",
+      "graphql-config": "^5.0.2",
+      "graphql-scalars": "^1.22.2",
+      "graphql-yoga": "^4.0.4",
+      "jsonwebtoken": "8.5.1",
+      "mongoose": "^7.5.0"
+   },
+   "prettier": {
+      "printWidth": 110,
+      "semi": false,
+      "singleQuote": true,
+      "trailingComma": "es5",
+      "tabWidth": 3,
+      "endOfLine": "auto",
+      "bracketSameLine": true
+   }
+}
