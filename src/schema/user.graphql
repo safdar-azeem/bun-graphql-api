@@ -1,0 +1,23 @@
+extend type Query {
+   me: User
+}
+
+extend type Mutation {
+   register(name: String, email: String, password: String): RegisterResponse
+   login(email: String!, password: String!): AuthData
+}
+
+type RegisterResponse {
+   message: String!
+}
+
+type AuthData {
+   token: String!
+}
+
+type User {
+   _id: ID!
+   name: String!
+   avatar: String
+   createdAt: DateTime
+}
