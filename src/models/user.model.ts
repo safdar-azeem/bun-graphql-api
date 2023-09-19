@@ -84,4 +84,4 @@ const UserModel = model<IUser>('User', userSchema);
 
 UserModel.createIndexes();
 
-export { UserModel };
+export { UserModel, IUser };
