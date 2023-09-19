@@ -1,10 +1,9 @@
 import jwt from 'jsonwebtoken'
 import { GraphQLError } from 'graphql'
-import { UserModel } from '../models/user.model'
-import { User } from '../graphql/types.generated'
+import { UserModel, IUser } from '../models/user.model'
 
 interface AuthResult {
-   user: User | null;
+   user: IUser | null;
    error: GraphQLError | null;
 }
 
@@ -25,7 +24,7 @@ export const authMiddleware = async (tokenValue: string | null): Promise<AuthRes
          };
       }
 
-      const user = await UserModel.findById(_id) as User;
+      const user = await UserModel.findById(_id);
       if (!user) {
          return {
             user: null,
