@@ -1,30 +1,42 @@
-import { GraphQLError } from 'graphql'
 import jwt from 'jsonwebtoken'
+import { GraphQLError } from 'graphql'
 import { UserModel } from '../models/user.model'
+import { User } from '../graphql/types.generated'
 
-export const authMiddleware = async (tokenValue) => {
-   const token = tokenValue ? tokenValue.replace('Bearer ', '') : null
+interface AuthResult {
+   user: User | null;
+   error: GraphQLError | null;
+}
 
-   if (!token) {
+export const authMiddleware = async (tokenValue: string | null): Promise<AuthResult> => {
+   if (!tokenValue) {
       return {
          user: null,
          error: new GraphQLError('Authentication token must be provided in the Authorization header'),
-      }
+      };
    }
 
-   const { _id } = jwt.verify(token, process.env.JWT_SECRET)
-   if (!_id) {
+   try {
+      const { _id } = jwt.verify(tokenValue.replace('Bearer ', ''), process.env.JWT_SECRET) as { _id: string };
+      if (!_id) {
+         return {
+            user: null,
+            error: new GraphQLError('Invalid/Expired token'),
+         };
+      }
+
+      const user = await UserModel.findById(_id) as User;
+      if (!user) {
+         return {
+            user: null,
+            error: new GraphQLError('User not found'),
+         };
+      }
+      return { user, error: null };
+   } catch (error) {
       return {
          user: null,
-         error: new GraphQLError('Invalid/Expired token'),
-      }
+         error: new GraphQLError('Invalid token format'),
+      };
    }
-   const user = await UserModel.findById(_id)
-   if (!user) {
-      return {
-         user: null,
-         error: new GraphQLError('User not found'),
-      }
-   }
-   return { user, error: null }
-}
+};
