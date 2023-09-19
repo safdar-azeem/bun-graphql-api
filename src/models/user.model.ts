@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import { model, Schema, Document } from 'mongoose';
-import { comparePassword, hashPassword } from '../utils/passwordUtils';
 import { User as GeneratedUser } from '../graphql/types.generated';
+import { comparePassword, hashPassword } from '../utils/passwordUtils';
 
 interface IUser extends Omit<GeneratedUser, '_id'>, Document {
    email: string;
