@@ -1,41 +1,39 @@
-import jwt from 'jsonwebtoken'
-import { model, Schema } from 'mongoose'
-import { comparePassword, hashPassword } from '../utils/passwordUtils'
+import jwt from 'jsonwebtoken';
+import { model, Schema, Document } from 'mongoose';
+import { comparePassword, hashPassword } from '../utils/passwordUtils';
+import { User as GeneratedUser } from '../graphql/types.generated';
 
-const userSchema = new Schema({
+interface IUser extends Omit<GeneratedUser, '_id'>, Document {
+   email: string;
+   password: string;
+   comparePassword(candidatePassword: string): Promise<boolean>;
+   generateAuthToken(expiresIn?: string): string;
+}
+
+const userSchema = new Schema<IUser>({
    name: {
       type: String,
       required: [true, 'Name is required'],
-      trim: (value) => value.trim(),
+      trim: true,
    },
    email: {
       type: String,
       required: [true, 'Email is required'],
       index: true,
-      trim: (value) => value.trim(),
-      unique: [true, 'Email already exist'],
+      trim: true,
+      unique: true,
       validate: {
          validator: function (value) {
-            if (!/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(value)) {
-               throw new Error('Email is not valid')
-            }
+            return /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(value);
          },
+         message: 'Email is not valid',
       },
    },
    password: {
       type: String,
       required: [true, 'Password is required'],
-      minlength: 6,
-      maxlength: 20,
-      validate: {
-         validator: function (value) {
-            if (value.length < 6) {
-               throw new Error('Password must be at least 6 characters long')
-            } else if (value.length > 20) {
-               throw new Error('Password must be at most 20 characters long')
-            }
-         },
-      },
+      minlength: [6, 'Password must be at least 6 characters long'],
+      maxlength: [20, 'Password must be at most 20 characters long'],
    },
    avatar: {
       type: String,
@@ -45,29 +43,31 @@ const userSchema = new Schema({
       type: Date,
       default: Date.now,
    },
-})
+});
 
-userSchema.pre('save', async function (next) {
-   try {
-      if (this.isModified('password')) {
-         this.password = await hashPassword(this.password)
+userSchema.pre<IUser>('save', async function (next) {
+   if (this.isModified('password')) {
+      try {
+         this.password = await hashPassword(this.password);
+         next();
+      } catch (err) {
+         next(err);
       }
-      next()
-   } catch (err) {
-      next(err)
+   } else {
+      next();
    }
-})
+});
 
-userSchema.methods.comparePassword = async function (candidatePassword) {
+userSchema.methods.comparePassword = async function (candidatePassword: string): Promise<boolean> {
    try {
-      const isMatch = await comparePassword(candidatePassword, this.password)
-      return isMatch
+      const isMatch = await comparePassword(candidatePassword, this.password);
+      return isMatch;
    } catch (err) {
-      throw new Error(err)
+      throw new Error(err);
    }
-}
+};
 
-userSchema.methods.generateAuthToken = function (expiresIn = '1w') {
+userSchema.methods.generateAuthToken = function (expiresIn = '1w'): string {
    const token = jwt.sign(
       {
          _id: this._id,
@@ -76,12 +76,12 @@ userSchema.methods.generateAuthToken = function (expiresIn = '1w') {
       {
          expiresIn,
       }
-   )
-   return token
-}
+   );
+   return token;
+};
 
-const UserModel = model('User', userSchema)
+const UserModel = model<IUser>('User', userSchema);
 
-UserModel.createIndexes()
+UserModel.createIndexes();
 
-export { UserModel }
+export { UserModel };
